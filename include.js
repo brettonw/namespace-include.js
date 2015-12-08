@@ -46,10 +46,10 @@ var include = function (name) {
     var found = search (".", parse.name.toLowerCase () + ".js");
     if (found != null) {
         // we found the target file, now run it in the global context
-        process.stderr.write ("Found '" + found + "' for '" + name + "'\n");
+        //process.stderr.write ("Found '" + found + "' for '" + name + "'\n");
         vm.runInThisContext(fs.readFileSync(found));
     } else {
-        process.stderr.write ("Failed to load '" + name + "'\n");
+        process.stderr.write ("Failed to include '" + name + "'\n");
     }
 };
 
