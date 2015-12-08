@@ -1,9 +1,11 @@
 // ️Bretton Wade 2015.12.07
+// brettonw/include.js
 // Node.js has a module import system, but sometimes I just want to include another file
 // at the global scope...
 //
 // Usage:
-//   var include = require("./include");
+//   var include = require("include");
+//   include ("myfile");
 //   include ("myfile.js");
 
 var fs = require ("fs");
@@ -11,7 +13,7 @@ var vm = require ("vm");
 var path = require ("path");
 
 var include = function (name) {
-    // internal function to search breadth first with recursion for this include, in
+    // internal function to search breadth first with recursion for this name, in
     // file sorted order so the first one found wins
     var search = function (where, target) {
         // search through the file list and queue up directories for later
