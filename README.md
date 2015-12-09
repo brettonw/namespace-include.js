@@ -13,10 +13,10 @@ Some of the reasons to encourage splitting classes into separate files are to:
 - promote code re-use through well abstracted interfaces, and
 - hoist commonly used functionality into a single point of entry (thereby minimizing opportunities for errors in replication and reducing effort when updating algorithms).
 
-To facilitate loading of separate class definition files, Node.js copied the perl module loading mechanism. Using the `var myModule = require ('modulename.js');` syntax, the mechanism runs your imported module in a separate VM context and returns the objects or functions you assign to the `exports` or `module.exports` object. The exported names are available to the importing module through the variable you assigned it to (in this case, `myModule`).
+To facilitate loading of separate class definition files, Node.js copied the perl module loading mechanism. Using the `var myModule = require ('modulename.js');` syntax, the mechanism runs your imported module in a separate VM context and returns the `module.exports` object. The exported names are available through the variable you assigned it to (in this case, `myModule`).
 
-The primary benefit of this approach is that you avoid polluting the global namespace. However, the `require` paradigm as implemented is overkill. 
+The primary benefit of this approach is that you avoid polluting the global namespace. Of note, a very rich ecosystem of modules has been built around the `require` mechanism using a package definition and the `npm` (node package manager), which connects to an online registry (npmjs.com). Ironically the module namespace has been flooded with more than 200,000 modules battling over appropriate titles, so there is clearly a need for a better solution.
 
-As an engineer, I should be able to make my own decisions about how I use the global namespace. Given that flexibility, I could just as easily decide to build objects to manage the namespaces myself. Aside from being pedantic, the `require` idiom imposes an undesirable coding style that results in Node.js specific module declarations.
+To put a fine point on it, the `require` paradigm as implemented is overkill. As an engineer, I should be able to make my own decisions about how I use the global namespace. Given that flexibility, I could just as easily decide to build objects to manage the namespaces myself. Aside from being pedantic, the `require` idiom imposes an undesirable coding style that results in Node.js specific module declarations.
 
 So... enter "include.js", when you just want to execute another Javascript file in the global context.
