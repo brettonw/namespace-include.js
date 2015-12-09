@@ -13,7 +13,7 @@ Some of the reasons to encourage splitting classes into separate files are to:
 - promote code re-use through well abstracted interfaces, and
 - hoist commonly used functionality into a single point of entry (thereby minimizing opportunities for errors in replication and reducing effort when updating algorithms).
 
-To facilitate loading of separate class definition files, Node.js copied the perl module loading mechanism. Using the `var myModule = require ('modulename.js');` syntax, the mechanism runs your imported module in a separate VM context and returns the `module.exports` object. The exported names are available through the variable you assigned it to (in this case, `myModule`).
+To facilitate loading of separate class definition files, Node.js copied the perl module loading mechanism. Using the `var myModule = require ('modulename.js');` syntax, the mechanism runs your imported module in a separate VM context and returns the `module.exports` object. The exported names are available through the variable you assigned it to (in this case, `myModule`). Depending on the usage, the net effect is usually similar to a singleton with static methods on it.
 
 The primary benefit of this approach is that you avoid polluting the global namespace. Of note, a very rich ecosystem of modules has been built around the `require` mechanism using a package definition and the `npm` (node package manager), which connects to an online registry (npmjs.com). Ironically the registry namespace has been flooded with more than 200,000 modules battling over appropriate titles, indicating a need for a better solution.
 
