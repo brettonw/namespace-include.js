@@ -15,13 +15,17 @@ var _path = require ("path");
 var Namespace = function () {
     var $ = Object.create (null);
 
+    var parsePath = function (path) {
+        return (_fs.statSync (path).isDirectory ()) ? path : _path.parse (path).dir;
+    };
+
     $.setPath = function (path) {
-        this.paths = [ _path.parse (path).dir ];
+        this.paths = [ parsePath (path) ];
         return this;
     };
 
     $.addPath = function (path) {
-        this.paths.push (_path.parse (path).dir);
+        this.paths.push (parsePath (path));
         return this;
     };
 
