@@ -1,6 +1,6 @@
 {
   "name": "namespace-include",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Because sometimes you just want to include another Javascript file in the global namespace...",
   "main": "namespace-include.js",
   "directories": {
@@ -19,8 +19,8 @@
     "url": "https://github.com/brettonw/namespace-include.js/issues"
   },
   "homepage": "https://github.com/brettonw/namespace-include.js#readme",
-  "dependencies" : {
-    "fs" : "*",
-    "path" : "*"
+  "dependencies": {
+    "fs": "*",
+    "path": "*"
   }
 }
