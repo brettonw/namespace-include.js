@@ -1,13 +1,26 @@
 {
-    "name" : "include",
-    "main" : "./include.js",
-    "version": "1.0.0",
-    "description": "Include JS files in the global context",
-    "license": "MIT",
-    "repository": "brettonw/include.js",
-    "author": {
-        "name": "Bretton Wade",
-        "email": "bretton.wade@gmail.com",
-        "url": "github.com/brettonw"
-    }
+  "name": "namespace-include",
+  "version": "1.0.0",
+  "description": "Because sometimes you just want to include another Javascript file in the global namespace...",
+  "main": "namespace-include.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node test/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brettonw/namespace-include.js.git"
+  },
+  "author": "Bretton Wade",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/brettonw/namespace-include.js/issues"
+  },
+  "homepage": "https://github.com/brettonw/namespace-include.js#readme",
+  "dependencies" : {
+    "fs" : "*",
+    "path" : "*"
+  }
 }

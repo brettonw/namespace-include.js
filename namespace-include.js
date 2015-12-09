@@ -4,7 +4,7 @@
 // at the global scope...
 //
 // Usage:
-//   var include = require("include");
+//   var include = require("namespace-include");
 //   include ("myfile");
 //   include ("myfile.js");
 
