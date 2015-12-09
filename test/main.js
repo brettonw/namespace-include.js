@@ -1,7 +1,10 @@
 #! /usr/local/bin/node
 
 require("..")
-    .include ("output.js");
+    .setVerbose (true)
+    .include ("output")
+    .include ("t1")
+    .include ("t2");
 
 var main = function () {
     stdout.writeln ("Hello World");
