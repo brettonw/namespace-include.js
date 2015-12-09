@@ -1,5 +1,5 @@
 # namespace-include.js for Node.js
-Because sometimes you just want to execute another Javascript file in the global namespace...
+Because sometimes you just want to include another Javascript file in the global namespace...
 
 ## Hey Rick
 I had a friend, a guy I would call up and talk about all manner of technical BS with. His name was Rick, and I knew him for 25 years. He was the smartest person I ever met, and I've been in the room with some of the world's brightest minds so that's no small compliment. Rick passed in June of 2015. This package is dedicated to him, because when I first encountered the way Node.js loads packages, I really wanted to get on the phone and talk it over with him.
@@ -19,4 +19,4 @@ The primary benefit of this approach is that you avoid polluting the global name
 
 To put a fine point on it, the `require` paradigm as implemented is overkill. As an engineer, I should be able to make my own decisions about how I use the global namespace. Given that flexibility, I could just as easily decide to build objects to manage the namespaces myself. Aside from being pedantic, the `require` idiom imposes an undesirable coding style that results in Node.js specific module declarations.
 
-So... enter "namespace-include.js", when you just want to execute another Javascript file in the global context.
+So... enter "namespace-include.js", when you just want to include another Javascript file in the global context.
