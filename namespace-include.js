@@ -101,13 +101,18 @@ var removeDirectory = function (path) {
 };
 
 // fetchIf - an internal helper function to synchronously fetch a file from <url> and
-// save it to <path>, if it's not already there
-var fetchIf = function (url, path) {
+// save it to <path>, if it's not already there (or <force> is true)
+var fetchIf = function (url, path, force) {
     // if it's not already cached, try to fetch it - I launch this as a child process
     // (sync) to ensure sequential operation without forcing the end user to respond
     // to my callback, and without adding ridiculous dependencies. Ah, the joys of
     // API design.
-    if (! fileExists (path)) {  _getSync (url, path); }
+    if (force && fileExists (path)) {
+        _fs.unlinkSync(path);
+    }
+    if (! fileExists (path)) {  
+        _getSync (url, path); 
+    }
 }
 
 // define the Namespace object
@@ -203,8 +208,11 @@ var Namespace = function () {
     };
 
     // importUrl - download a package from <url> and unpack it into the namespace-cache
-    $.importUrl = function (url) {
-        if (this.verbose) { process.stderr.write ("importUrl: " + url + "\n"); }
+    //      downloads are skipped if the package is already present in the cache, unless
+    //      the optional parameter <force> is true
+    $.importUrl = function (url, force) {
+        if (force === undefined) { force = false; }
+        if (this.verbose) { process.stderr.write ("importUrl: " + url + ", force: " + (force ? "true" : "false") + "\n"); }
 
         // take apart the url to get the target name, and the end package name. regardless
         // of whether the import target is a raw file or a compressed package, we import
@@ -220,15 +228,19 @@ var Namespace = function () {
             case ".js": {
                 ensureDirectory (package);
                 path = _path.join (package, name);
-                fetchIf (url, path);
+                fetchIf (url, path, force);
                 break;
             }
             case ".tgz": {
-                fetchIf (url, path);
+                fetchIf (url, path, force);
+                if (force && fileExists (package)) { 
+                    removeDirectory (package); 
+                }
                 if (! fileExists (package)) {
                     var cwd = process.cwd ();
                     process.chdir(this.cacheFolderName);
-                    _cp.spawnSync("tar", ["xzvf", path]);
+                    var options = this.verbose ? { stdio: ["ignore", 1, 2] } : {};
+                    _cp.spawnSync("tar", ["xvf", path], options);
                     process.chdir(cwd);
                 }
                 break;
@@ -253,9 +265,11 @@ var Namespace = function () {
     }
 
     // import - this is a convenience method to make import calls look cleaner. it will
-    //      download <name> from the host and unpack it as a normal URL import. packages
-    //      from the host must be .tgz files
-    $.import = function (name) {
+    //      download <name> from the host and unpack it as a normal URL import. download
+    //      will be skipped if the package is already present, unless <force> is true.
+    //      packages from the host must be .tgz files
+    $.import = function (name, force) {
+        if (force === undefined) { force = false; }
         if (this.verbose) { process.stderr.write ("import: " + name + "\n"); }
 
         // use the name to make the url and target path
@@ -265,9 +279,9 @@ var Namespace = function () {
         var url = this.host + name + ".tgz";
 
         // try to import the url
-        return this.importUrl (url);
+        return this.importUrl (url, force);
     };
-
+    
     // publish - hoist a package to the archive
     $.publish = function () {
         // take a target - directory or js file, tar and gzip it, push it to the host
