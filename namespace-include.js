@@ -8,10 +8,15 @@
 //     .addPath ("/usr/local/js")
 //     .include ("myfile");
 
+// all of my dependencies, these SHOULD all be built-ins. note that I use the _xxx naming
+// convention to avoid polluting my script namespace with these basic words.
 var _fs = require ("fs");
 var _vm = require ("vm");
 var _path = require ("path");
+var _url = require ("url");
+var _http = require ("http");
 
+// define the Namespace object
 var Namespace = function () {
     var $ = Object.create (null);
 
@@ -161,7 +166,48 @@ var Namespace = function () {
     //      are treated as a package.
     $.import = function (url) {
         if (this.verbose) { process.stderr.write ("import: " + url + "\n"); }
-        // first, look to see if it's already cached
+
+        // check for the cache folder
+        var cacheFolderName = _path.join (parsePath (require.main.filename), "namespace-cache");
+        if (! fileExists (cacheFolderName)) {
+            _fs.mkdirSync(cacheFolderName);
+        }
+
+        // take apart the url to get the target name
+        var parse = _url.parse (url);
+        var name = parse.pathname.split ("/").pop ();
+        var path = _path.join (cacheFolderName, name);
+
+        // if it's not already cached, try to fetch it (with a busy wait)
+        if (! fileExists (path)) {
+            require("child_process").spawnSync("node", ["./fetch.js", url, path]);
+        }
+
+        // if we got it, include it
+        if (fileExists (path)) {
+            switch (_path.extname (path)) {
+                case ".js" :
+                    this.includeFile (path);
+                    break;
+                case ".tgz" :
+                    var cwd = process.cwd ();
+                    process.chdir(cacheFolderName);
+                    require("child_process").spawnSync("tar", ["xzvf", path]);
+                    process.chdir(cwd);
+                    path = path.substr (0, path.length - 4);
+                    break;
+                default:
+                    process.stderr.write ("Bogus extname = " + path + " (" + _path.extname (path) + ")");
+                    break;
+            }
+
+            if (_fs.statSync (path).isDirectory ()) {
+                this.includePackage (path);
+            } else {
+                this.includeFile (path);
+            }
+        }
+        return this;
     };
 
     // new - a helper function. you probably don't need this.
@@ -172,5 +218,5 @@ var Namespace = function () {
     return $;
 } ();
 
-
+// and export a usable namespace
 module.exports = Namespace.new ();
