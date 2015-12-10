@@ -30,3 +30,6 @@ node_modules
 
 # namespace dependency directory
 namespace-cache
+
+# test downloads
+test/abc.js
