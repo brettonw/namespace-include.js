@@ -1,6 +1,6 @@
 {
   "name": "namespace-include",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Because sometimes you just want to include another Javascript file in the global namespace...",
   "main": "namespace-include.js",
   "directories": {
