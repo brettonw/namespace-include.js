@@ -20,7 +20,6 @@
   },
   "homepage": "https://github.com/brettonw/namespace-include.js#readme",
   "dependencies": {
-    "fs": "*",
-    "path": "*"
+    "get-sync": "*"
   }
 }
