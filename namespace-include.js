@@ -222,11 +222,9 @@ var Namespace = function () {
                 fetchIf (url, path);
                 break;
             }
-            case ".tgz":
-            case ".nsp": {
+            case ".tgz": {
                 fetchIf (url, path);
                 if (! fileExists (package)) {
-                process.stderr.write ("SPAWNING TAR\n");
                     var cwd = process.cwd ();
                     process.chdir(this.cacheFolderName);
                     _cp.spawnSync("tar", ["xzvf", path]);

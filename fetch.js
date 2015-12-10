@@ -10,9 +10,10 @@ var _url = require ("url");
 
 var request = _http.get(process.argv[2], function(response) {
     var chunks = [];
-    response.setEncoding("binary");
-    response.on("data", function (chunk) { chunks.push(chunk) });
+    //response.setEncoding("binary");
+    response.on("data", function (chunk) { chunks.push(chunk); });
     response.on("end", function() { _fs.writeFileSync(process.argv[3], Buffer.concat(chunks)); });
 });
 request.on("error", function(error) {
+    process.stderr.write ("ERROR ON DOWNLOAD: " + error);
 });
