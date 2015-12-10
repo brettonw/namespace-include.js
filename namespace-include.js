@@ -15,6 +15,7 @@ var _vm = require ("vm");
 var _path = require ("path");
 var _url = require ("url");
 var _http = require ("http");
+var _cp = require ("child_process");
 
 // define the Namespace object
 var Namespace = function () {
@@ -34,10 +35,12 @@ var Namespace = function () {
         var directories = [];
         _fs.readdirSync (path).sort ().some (function (leaf) {
             var leafPath = _path.join (path, leaf);
-            if (leaf.toLowerCase () == target) {
-                found = leafPath;
-            } else if (_fs.statSync (leafPath).isDirectory ()) {
-                directories.push (leafPath);
+            if ((leaf != ".") && (leaf != "..")) {
+                if (leaf.toLowerCase () == target) {
+                    found = leafPath;
+                } else if (_fs.statSync (leafPath).isDirectory ()) {
+                    directories.push (leafPath);
+                }
             }
             return (found);
         });
@@ -78,6 +81,38 @@ var Namespace = function () {
         return false;
     };
 
+    // ensureDirectory - internal helper function because I always have to do the same operation
+    var ensureDirectory = function (path) {
+        if (! fileExists (path)) { _fs.mkdirSync(path); }
+    }
+
+    // removeDirectory - internal helper to recursively remove a folder
+    var removeDirectory = function (path) {
+        var list = _fs.readdirSync (path);
+        for (var i = 0, end = list.length; i < end; i++) {
+            var leaf = list[i];
+            if ((leaf != ".") && (leaf != "..")) {
+            var leafPath = _path.join (path, leaf);
+                if (_fs.statSync(leafPath).isDirectory()) {
+                    removeDirectory(leafPath);
+                } else {
+                    _fs.unlinkSync(leafPath);
+                }
+            }
+        }
+        _fs.rmdirSync(path);
+    };
+
+    // fetchIf - an internal helper function to synchronously fetch a file from <url> and
+    // save it to <path>, if it's not already there
+    var fetchIf = function (url, path) {
+        // if it's not already cached, try to fetch it - I launch this as a child process
+        // (sync) to ensure sequential operation without forcing the end user to respond
+        // to my callback, and without adding ridiculous dependencies. Ah, the joys of
+        // API design.
+        if (! fileExists (path)) {  _cp.spawnSync("node", ["./fetch.js", url, path]); }
+    }
+
     // setVerbose - turn debugging output (to stderr) on or off
     $.setVerbose = function (verbose) {
         if (this.verbose) { process.stderr.write ("setVerbose: " + (verbose ? "true" : "false") + "\n"); }
@@ -113,23 +148,27 @@ var Namespace = function () {
     //      are included
     $.includePackage = function (path) {
         if (this.verbose) { process.stderr.write ("includePackage: " + path + "\n"); }
-        var scope = this;
-        var package = _path.join (path, "namespace-package.json");
-        if (fileExists (package)) {
-            try {
-                package = JSON.parse(_fs.readFileSync(package, "utf8"));
-                if ((package != null) && (package.hasOwnProperty ("files"))) {
-                    package.files.forEach (function (leaf) {
+        if (fileExists (path)) {
+            var scope = this;
+            var package = _path.join (path, "namespace-package.json");
+            if (fileExists (package)) {
+                try {
+                    package = JSON.parse(_fs.readFileSync(package, "utf8"));
+                    if ((package != null) && (package.hasOwnProperty ("files"))) {
+                        package.files.forEach (function (leaf) {
+                            scope.includeFile (_path.join (path, leaf));
+                        });
+                    }
+                } catch (exc) { }
+            } else {
+                _fs.readdirSync (path).sort ().forEach (function (leaf) {
+                    if (_path.extname (leaf) == ".js") {
                         scope.includeFile (_path.join (path, leaf));
-                    });
-                }
-            } catch (exc) { }
+                    }
+                });
+            }
         } else {
-            _fs.readdirSync (path).sort ().forEach (function (leaf) {
-                if (_path.extname (leaf) == ".js") {
-                    scope.includeFile (_path.join (path, leaf));
-                }
-            });
+            process.stderr.write ("includePackage '" + path + "' does not exist\n");
         }
         return this;
     };
@@ -139,11 +178,12 @@ var Namespace = function () {
     //      is decorated as a .js file, and the search is repeated
     $.include = function (name) {
         if (this.verbose) { process.stderr.write ("include: " + name + "\n"); }
+
         // first, find the target using <name> as give. if that fails (and <name> wasn't
         // already a .js file), try looking for <name>.js
         name = name.toLowerCase ();
-        var parse = _path.parse (name);
         var found = searchPaths (this.paths, name);
+        var parse = _path.parse (name);
         if ((! found) && (parse.ext != ".js")) {
             found = searchPaths (this.paths, parse.name + ".js");
         }
@@ -161,64 +201,97 @@ var Namespace = function () {
         return this;
     };
 
-    // import - download <url>, and unpack it into the 'namespace-cache' folder at the
-    //      root of the execution hierarchy. raw .js files are saved directly, archives
-    //      are treated as a package.
-    $.import = function (url) {
-        if (this.verbose) { process.stderr.write ("import: " + url + "\n"); }
+    // importUrl - download a package from <url> and unpack it into the namespace-cache
+    $.importUrl = function (url) {
+        if (this.verbose) { process.stderr.write ("importUrl: " + url + "\n"); }
 
-        // check for the cache folder
-        var cacheFolderName = _path.join (parsePath (require.main.filename), "namespace-cache");
-        if (! fileExists (cacheFolderName)) {
-            _fs.mkdirSync(cacheFolderName);
-        }
-
-        // take apart the url to get the target name
+        // take apart the url to get the target name, and the end package name. regardless
+        // of whether the import target is a raw file or a compressed package, we import
+        // it as a package folder
         var parse = _url.parse (url);
         var name = parse.pathname.split ("/").pop ();
-        var path = _path.join (cacheFolderName, name);
+        var ext = _path.extname (name).toLowerCase ();
+        var path = _path.join (this.cacheFolderName, name);
+        var package = path.substr (0, path.length - ext.length);
 
-        // reassemble the url, using hosts from the lookup list if it's not provided
-
-        // if it's not already cached, try to fetch it (with a busy wait)
-        if (! fileExists (path)) {
-            require("child_process").spawnSync("node", ["./fetch.js", url, path]);
-        }
-
-        // if we got it, include it
-        if (fileExists (path)) {
-            switch (_path.extname (path)) {
-                case ".js" :
-                    this.includeFile (path);
-                    break;
-                case ".tgz" :
+        // depending on the url target, we have to configure the result differently
+        switch (ext) {
+            case ".js": {
+                ensureDirectory (package);
+                path = _path.join (package, name);
+                fetchIf (url, path);
+                break;
+            }
+            case ".tgz":
+            case ".nsp": {
+                fetchIf (url, path);
+                if (! fileExists (package)) {
+                process.stderr.write ("SPAWNING TAR\n");
                     var cwd = process.cwd ();
-                    process.chdir(cacheFolderName);
-                    require("child_process").spawnSync("tar", ["xzvf", path]);
+                    process.chdir(this.cacheFolderName);
+                    _cp.spawnSync("tar", ["xzvf", path]);
                     process.chdir(cwd);
-                    path = path.substr (0, path.length - 4);
-                    break;
-                default:
-                    process.stderr.write ("Bogus extname = " + path + " (" + _path.extname (path) + ")");
-                    break;
+                }
+                break;
             }
-
-            if (_fs.statSync (path).isDirectory ()) {
-                this.includePackage (path);
-            } else {
-                this.includeFile (path);
+            default: {
+                process.stderr.write ("Bogus extension = " + path + " (" + _path.extname (path) + ")");
+                break;
             }
         }
+
+        // and finally, if we have everything we need, include it like normal
+        this.includePackage (package);
         return this;
+    };
+
+
+    // setHost - use <host> as the default download site for importing packages
+    $.setHost = function (host) {
+        if (this.verbose) { process.stderr.write ("setHost: " + host + "\n"); }
+        this.host = host;
+        return this;
+    }
+
+    // import - this is a convenience method to make import calls look cleaner. it will
+    //      download <name> from the host and unpack it as a normal URL import. packages
+    //      from the host must be .tgz files
+    $.import = function (name) {
+        if (this.verbose) { process.stderr.write ("import: " + name + "\n"); }
+
+        // use the name to make the url and target path
+        name = name.toLowerCase ();
+        var parse = _path.parse (name);
+        name = (parse.ext == ".tgz") ? name.substr (0, name.length - parse.ext.length) : name;
+        var url = this.host + name + ".tgz";
+
+        // try to import the url
+        return this.importUrl (url);
     };
 
     // publish - hoist a package to the archive
     $.publish = function () {
+        // take a target - directory or js file, tar and gzip it, push it to the host
+    };
+
+    // clearCache - empty out the cached imports
+    $.clearCache = function () {
+        if (this.verbose) { process.stderr.write ("clearCache\n"); }
+        removeDirectory (this.cacheFolderName);
+        ensureDirectory (this.cacheFolderName);
+        return this;
     };
 
     // new - a helper function. you probably don't need this.
     $.new = function () {
-        return Object.create (Namespace).setVerbose (false).setPath (require.main.filename);
+        // check for the cache folder
+        this.cacheFolderName = _path.join (parsePath (require.main.filename), "namespace-cache");
+        ensureDirectory (this.cacheFolderName);
+
+        return Object.create (Namespace)
+            .setVerbose (false)
+            .setPath (require.main.filename)
+            .setHost ("http://namespace-include.azurewebsites.net/package/");
     };
 
     return $;
