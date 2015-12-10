@@ -178,6 +178,8 @@ var Namespace = function () {
         var name = parse.pathname.split ("/").pop ();
         var path = _path.join (cacheFolderName, name);
 
+        // reassemble the url, using hosts from the lookup list if it's not provided
+
         // if it's not already cached, try to fetch it (with a busy wait)
         if (! fileExists (path)) {
             require("child_process").spawnSync("node", ["./fetch.js", url, path]);
@@ -208,6 +210,10 @@ var Namespace = function () {
             }
         }
         return this;
+    };
+
+    // publish - hoist a package to the archive
+    $.publish = function () {
     };
 
     // new - a helper function. you probably don't need this.
