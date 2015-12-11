@@ -114,7 +114,29 @@ It _returns_ the `Namespace` object, so you can chain calls:
 
 ### setPath
 
+    require ("namespace-include")
+        .setPath(<path>);
+
+The method `setPath` sets the search path for `include` to be *just* <path>.
+
+It _returns_ the `Namespace` object, so you can chain calls:
+
+    require ("namespace-include")
+        .setPath ("./mySearchPath")
+        .include ("abc");
+
 ### addPath
+
+    require ("namespace-include")
+        .addPath(<path>);
+
+The method `addPath` appends <path> as an additional search path to the list of search paths for `include`.
+
+It _returns_ the `Namespace` object, so you can chain calls:
+
+    require ("namespace-include")
+        .addPath ("/ourCommonSearchPaths")
+        .include ("abc");
 
 ## All about "packages"
 
