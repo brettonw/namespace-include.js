@@ -59,7 +59,7 @@ So `require ("xxx")` works, but to put a fine point on it, the paradigm as imple
 
 - `npm` is a standalone tool, so if I forget to run `npm install myPackage` then my program fails. 
 
-- `npm` is not universal, so if you want to use that rich module ecosystem, but you're on an unsupported platform you have to do extra work. In order to use `npm` to publish this module, I am currently using a workflow that bounces between my cygwin environment and a Mac or Linux VM, through GitHub. If you are trying to follow my changelogs, I'm sorry.
+- `npm` is not universal, so if you want to use that rich module ecosystem, but you're on an unsupported platform, then you have to do extra work. In order to use `npm` to publish this module, I am currently using a workflow that bounces between my cygwin environment and a Mac or Linux VM, through GitHub. If you are trying to follow my changelogs, I'm sorry.
 
 - While I'm at it, who at npm decided cygwin is evil? I've been using this toolset for more than 20 years to give me unix-like shell (and portable shell scripts) on Windows systems, and I resent that npm and its legacy eschew it in favor of... I can't think what it's in favor of. It's just... 
 
