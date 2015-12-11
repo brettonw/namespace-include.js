@@ -17,6 +17,6 @@ To facilitate loading of separate class definition files, Node.js copied the per
 
 The primary benefit of this approach is that you avoid polluting the global namespace. Of note, a very rich ecosystem of modules has been built around the `require` mechanism using a package definition and the `npm` (node package manager), which connects to an online registry (npmjs.com). Ironically the registry namespace has been flooded with more than 200,000 modules battling over appropriate titles, indicating a need for a better solution.
 
-To put a fine point on it, the `require` paradigm as implemented is overkill. As an engineer, I should be able to make my own decisions about how I use the global namespace. Given that flexibility, I could just as easily decide to build objects to manage the namespaces myself. Aside from being pedantic, the `require` idiom imposes an undesirable coding style that results in Node.js specific module declarations.
+To put a fine point on it, the `require` paradigm as implemented is overkill. As an engineer, I should be able to make my own decisions about how I use the global namespace, and requiring each module to export a single object makes building rich class hierarchies difficult. Given the flexibility to define values in the gloabl scope, I could just as easily decide to build objects to manage the namespaces myself. Aside from being pedantic, the `require` idiom imposes an undesirable coding style that results in Node.js specific module declarations.
 
-So... enter "namespace-include.js", when you just want to include another Javascript file in the global context.
+So... enter "namespace-include.js", when you just want to include another Javascript file (or files) in the global context.
