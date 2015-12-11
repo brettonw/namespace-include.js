@@ -70,27 +70,27 @@ The solution is to expose a simple mechanism for including another Javascript fi
 
 ### includeFile 
 
-    require("namespace-include")
-        .includeFile (name);
+    require ("namespace-include")
+        .includeFile (<name>);
 
 The method `includeFile` will directly include the javascript file specified in `<name>` into your global context. It doesn't do any kind of search, or validation that the requested file actually exists.
 
 It _returns_ the `Namespace` object, so you can chain calls:
 
-    require("namespace-include")
+    require ("namespace-include")
         .includeFile ("abc.js")
         .includeFile ("xyz.js");
 
 ### includePackage
 
-    require("namespace-include")
-        .includePackage (path);
+    require ("namespace-include")
+        .includePackage (<path>);
 
 The method `includePackage` will run `includeFile` on the javascript files found in the directory `<path>` (relative to the CWD). It doesn't do any kind of search, but does validate the presence of the path.
 
 It _returns_ the `Namespace` object, so you can chain calls:
 
-    require("namespace-include")
+    require ("namespace-include")
         .includePackage ("packages/abc")
         .includeFile ("xyz.js");
 
@@ -100,8 +100,8 @@ Actually, this module does quite a bit more than *just* include files or package
 ## Searching
 ### include
 
-    require("namespace-include")
-        .include(name);
+    require ("namespace-include")
+        .include(<name>);
 
 The method `include` is a helper function for `includeFile` and `includePackage`. It provides search capability in search paths (that you specify through `setPath` or `addPath` - the default is the main program starting directory), automatically determines whether `<name>` is a file or a package, so you can leave off the ".js" on your file names (because it just looks cleaner to me).
 
