@@ -107,7 +107,7 @@ The method `include` is a helper function for `includeFile` and `includePackage`
 
 It _returns_ the `Namespace` object, so you can chain calls:
 
-    require("namespace-include")
+    require ("namespace-include")
         .include ("abc")
         .include ("def")
         .includeFile ("xyz.js");
