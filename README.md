@@ -13,17 +13,36 @@ Some of the reasons to encourage splitting code into separate files are to:
 - promote code re-use through well abstracted interfaces, and
 - hoist commonly used functionality into a single point of entry (thereby minimizing opportunities for errors in replication and reducing effort when updating algorithms).
 
-## Node.js loads modules
-To facilitate loading of separate class definition files, Node.js copied the perl module loading mechanism. Using the 
-  `var myModule = require ("modulename.js");` 
-syntax, the mechanism runs your imported module in a separate VM context and returns the `module.exports` object. The exported names are available through the variable you assigned it to (in this case, `myModule`). Depending on the usage, the net effect is usually similar to a singleton with static methods on it (think of it like `Math`, where you say something like `var y = Math.sin(x);`).
+## Node.js uses "modules"
+To facilitate loading of separate class definition files, Node.js copied the syntax of the perl module loading mechanism (but not the behavior). To bring extra code in, you say something like:
 
-The primary benefit of this approach is that you avoid polluting the global namespace. Of note, a very rich ecosystem of modules has been built around the `require` mechanism using a package definition and the `npm` (node package manager), which connects to an [online registry at npmjs.com](npmjs.com). Ironically the registry namespace has been flooded with more than 200,000 modules battling over appropriate titles. Every single 2 or 3 letter name you can imagine is taken, and most sensible names have been used for *something*, indicating a need for a better solution.
+  var myModule = require ("importedModuleName.js");
+
+In the module, you say something like:
+
+  var exportThis = function () {
+    ...
+  }
+  module.exports = exportThis;
+
+The mechanism runs your imported module in a separate VM context and returns `module.exports`. The exported object is available through the variable you assigned it to (in this case, `myModule`). Depending on the usage, the net effect is usually similar to a singleton with static methods on it (think of it like `Math`, where you say something like `var y = Math.sin(x);`).
+
+The primary benefit of this approach is that you avoid polluting the global namespace with imported modules. 
+
+Of note, a very rich ecosystem of modules has been built around the `require` mechanism using a package definition and the `npm` (node package manager), which connects to an [online registry at npmjs.com](npmjs.com). Ironically the registry namespace has been flooded with more than 200,000 modules battling over appropriate titles. Every single 2 or 3 letter name you can imagine is taken, and most sensible names have been used for *something*, indicating a need for a better solution.
 
 ## What's the problem?
-To put a fine point on it, the `require` paradigm as implemented is pedantic overkill in an environment that otherwise just doesn't have that much rigor (or need for it). As an engineer, I should be able to make my own decisions about how I use the global namespace, and requiring each module to export a single object makes building rich class hierarchies difficult. Given the flexibility to define values in the global scope, I could just as easily decide to build objects to manage the namespaces myself, but exporting as many objects as I want from a file should be an option, and I shouldn't have to know about what is inside the module in order to bring it's parts into my namespace (e.g. `var myExtra = require ("modulename").extraThing;`).
+So `require ("xxx")` works, but to put a fine point on it, the paradigm as implemented is pedantic overkill in an environment that otherwise just doesn't have that much rigor (or need for it). My criticisms in no particular order are:
 
-And my last criticism of the `require` idiom is it imposes an undesirable coding style that results in Node.js specific module declarations. I have to do extra work if I want to re-use that code somewhere else.
+- When I include a module, I shouldn't have to define additional variables in my namespace to access them. Most times, these names pollute my namespace anyway. How often do you see something like `var path = require ("path"):` in sample code? Now you have a global variable called "path". Brilliant. I work around this by using a prefixed underscore (_) naming convention on imports, but you can choose any name you like.
+- I shouldn't have to know about what is inside the module in order to bring it's parts into my namespace (e.g. `var myExtra = require ("modulename").extraThing;`),
+- I should be able to make my own decisions about how I use the global namespace in my program. Given the flexibility to define values in the global scope, I could just as easily decide to build objects to manage the namespaces myself, or export as many objects as I want.
+- Requiring each module to operate in isolation and allowing export of a single object makes building rich class hierarchies difficult. Now I have to keep track of what classes depend on what other classes in my hierarchy and build each one of them with its own set of `require ("xxx")` statements. You might argue this is a good thing, and I'm all for managing dependencies intelligently, but in truth this is extra code that is simply unnecessary (and an extra set of opportunities for error).
+- The code I write for a module is not portable, it's specific to Node.js. I shouldn't have to use this stilted coding style that introduces the `module` variable into my global context. This kind of defeats the entire point of being able leverage Javascript development skills across the front and back-end. Now I have to do extra work if I want to re-use that code somewhere else.
 
 ## The solution
-So... enter "namespace-include.js", when you just want to include another Javascript file (or files) in the global context.
+The solution is to expose a simple mechanism for including another Javascript file into the global context. Now you can do all the engineering you want, with re-usable code, and it's *just* Javascript.
+
+Actually, this module does quite a bit more, allowing you to specify search paths, implement a form of package, and even import files and packages from the web dynamically.  
+
+(docs in progress)
