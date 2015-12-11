@@ -139,6 +139,13 @@ It _returns_ the `Namespace` object, so you can chain calls:
         .include ("abc");
 
 ## All about "packages"
+In normal parlance for the module `namespace-include`, a package is just a directory with Javascript files inside it. Sometimes, however, you might want to be a bit more precise. Maybe you are trying to use a git repository as a package, and there are a bunch of files in it that aren't part of the external package you want to present. Well, you can tell `namespace-include` what files to include by creating a file called `namespace-package.json` inside your package directory.
+
+Right now, the package file supports a single entry called `files`, and it should contain an array of filenames, like so:
+
+    { "files" : [ "abc.js", "def.js", "xyz.js" ] }
+
+This file is intended to support future enhancements, so we anticipate various options such as dependency chain management.
 
 ## Importing from a URL
 
