@@ -37,9 +37,15 @@ A very rich ecosystem of modules has been built around the `require` mechanism u
 ## What's the problem?
 So `require ("xxx")` works, but to put a fine point on it, the paradigm as implemented is pedantic overkill in an environment that otherwise just doesn't have that much rigor (or need for it). My criticisms in no particular order are:
 
-- Javascript users are not typically that concerned with the dogmatic procedures of software development in teams, so building a mechanism that treats scripters as engineers in a defensive programming environment stands out as awkward. This shining example of best practice is just a hurdle to normal usage.
+- Javascript users are not typically that concerned with the dogmatic procedures of software development in teams, so building a mechanism that treats scripters as engineers in a defensive programming environment stands out as awkward. This shining example of industry best practice is just a hurdle to normal usage.
 
-- When I include a module, I shouldn't have to define additional variables in my namespace to access them. Most times, these names pollute my namespace anyway. How often do you see something like `var path = require ("path"):` in sample code? Now you have a global variable called "path". Brilliant. I work around this by using a prefixed underscore (_) naming convention on imports, but you can choose any name you like.
+- When I include a module, I shouldn't have to define additional variables in my namespace to access them. Most times, these names pollute my namespace anyway. How often do you look at sample code and see something like:
+
+        var path = require ("path"):
+        
+    Now you have a global variable called "path". Brilliant. I work around this by using a prefixed underscore (_) naming convention on imports, but you can choose any name you like:
+    
+        var path = require ("_path"):
 
 - I shouldn't have to know about what is inside the module in order to bring its parts into my namespace. This thing:
 
@@ -51,8 +57,18 @@ So `require ("xxx")` works, but to put a fine point on it, the paradigm as imple
 
 - The code I write for a module is not portable, it's specific to Node.js. I shouldn't have to use this stilted coding style that introduces the `module` variable into my global context. This kind of defeats the entire point of being able leverage Javascript development skills across the front and back-end. Now I have to do extra work if I want to re-use that code somewhere else.
 
+- `npm` is a standalone tool, so if I forget to run `npm install myPackage` then my program fails. 
+
+- `npm` is not universal, so if you want to use that rich module ecosystem, but you're on an unsupported platform you have to do extra work. In order to use `npm` to publish this module, I am currently using a workflow that bounces between my cygwin environment and a Mac or Linux VM, through GitHub. If you are trying to follow my changelogs, I'm sorry.
+
+- While I'm at it, who at npm decided cygwin is evil? I've been using this toolset for more than 20 years to give me unix-like shell (and portable shell scripts) on Windows systems, and I resent that npm and its legacy eschew it in favor of... I can't think what it's in favor of. It's just... 
+
 ## The solution
-The solution is to expose a simple mechanism for including another Javascript file into the global context. Now you can do all the engineering you want, with re-usable code, and it's *just* Javascript.
+The solution is to expose a simple mechanism for including another Javascript file into the global context. Now you can do all the engineering you want, with re-usable code, and it's *just* Javascript. For this, two basic methods are provided:
+
+includeFile (name)
+includePackage (path)
+
 
 Actually, this module does quite a bit more, allowing you to specify search paths, implement a form of package, and even import files and packages from the web dynamically.  
 
