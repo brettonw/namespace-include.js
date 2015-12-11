@@ -29,7 +29,7 @@ The mechanism runs your imported module in a separate VM context and returns `mo
 
 The primary benefit of this approach is that you avoid polluting the script's global namespace with values from the imported modules. 
 
-A very rich ecosystem of modules has been built around the `require` mechanism using a package definition and the `npm` (node package manager), which connects to an [online registry at npmjs.com](npmjs.com). Ironically the registry namespace has been flooded with more than 200,000 modules battling over appropriate titles. Every single 2 or 3 letter name you can imagine is taken, and most sensible names have been used for *something*, indicating a need for a better solution.
+A very rich ecosystem of modules has been built around the `require` mechanism using a package definition and the `npm` (node package manager), a stand along program that connects to an [online registry at npmjs.com](npmjs.com). Ironically the registry namespace has been flooded with more than 200,000 modules battling over appropriate titles. Every single 2 or 3 letter name you can imagine is taken, and most sensible names have been used for *something*, indicating a need for a better solution.
 
 ## What's the problem?
 So `require ("xxx")` works, but to put a fine point on it, the paradigm as implemented is pedantic overkill in an environment that otherwise just doesn't have that much rigor (or need for it). My criticisms in no particular order are:
