@@ -32,12 +32,10 @@ var searchPath = function (path, target) {
     var directories = [];
     _fs.readdirSync (path).sort ().some (function (leaf) {
         var leafPath = _path.join (path, leaf);
-        if ((leaf != ".") && (leaf != "..")) {
-            if (leaf.toLowerCase () == target) {
-                found = leafPath;
-            } else if (_fs.statSync (leafPath).isDirectory ()) {
-                directories.push (leafPath);
-            }
+        if (leaf.toLowerCase () == target) {
+            found = leafPath;
+        } else if (_fs.statSync (leafPath).isDirectory ()) {
+            directories.push (leafPath);
         }
         return (found);
     });
@@ -85,18 +83,14 @@ var ensureDirectory = function (path) {
 
 // removeDirectory - internal helper to recursively remove a folder
 var removeDirectory = function (path) {
-    var list = _fs.readdirSync (path);
-    for (var i = 0, end = list.length; i < end; i++) {
-        var leaf = list[i];
-        if ((leaf != ".") && (leaf != "..")) {
+    _fs.readdirSync (path).sort ().forEach (function (leaf) {
         var leafPath = _path.join (path, leaf);
-            if (_fs.statSync(leafPath).isDirectory()) {
-                removeDirectory(leafPath);
-            } else {
-                _fs.unlinkSync(leafPath);
-            }
+        if (_fs.statSync(leafPath).isDirectory()) {
+            removeDirectory(leafPath);
+        } else {
+            _fs.unlinkSync(leafPath);
         }
-    }
+    });
     _fs.rmdirSync(path);
 };
 
@@ -167,6 +161,7 @@ var Namespace = function () {
                     }
                 } catch (exc) { }
             } else {
+                // the javascript files are treated in sorted order
                 _fs.readdirSync (path).sort ().forEach (function (leaf) {
                     if (_path.extname (leaf) == ".js") {
                         scope.includeFile (_path.join (path, leaf));
@@ -213,6 +208,8 @@ var Namespace = function () {
     $.importUrl = function (url, force) {
         if (force === undefined) { force = false; }
         if (this.verbose) { process.stderr.write ("importUrl: " + url + ", force: " + (force ? "true" : "false") + "\n"); }
+
+        ensureDirectory (this.cacheFolderName);
 
         // take apart the url to get the target name, and the end package name. regardless
         // of whether the import target is a raw file or a compressed package, we import
@@ -299,7 +296,6 @@ var Namespace = function () {
     $.new = function () {
         // check for the cache folder
         this.cacheFolderName = _path.join (parsePath (require.main.filename), "namespace-cache");
-        ensureDirectory (this.cacheFolderName);
 
         return Object.create (Namespace)
             .setVerbose (false)
@@ -312,3 +308,7 @@ var Namespace = function () {
 
 // and export a usable namespace
 module.exports = Namespace.new ();
+
+// in order to let "included" files use the "require" mechanism, I have to hoist the name
+// into the global space. this doesn't seem to cause any problems in my testing so far
+global.require = module.require;
