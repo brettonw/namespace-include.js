@@ -4,7 +4,7 @@ Because sometimes you just want to include another Javascript file in the global
 ## Hey Rick
 I had a friend, a guy I would call up and talk about all manner of technical BS with. His name was Rick, and I knew him for 25 years. He was the smartest person I ever met, and I've been in the room with some of the world's brightest minds so that's no small compliment. Rick passed in June of 2015. This package is dedicated to him, because when I first encountered the way Node.js loads packages, I really wanted to get on the phone and talk it over with him.
 
-## Why do I want to include other files in the first place?
+## Why do I want to "include" files in my Javascript?
 In Javascript, it's very common to use a prototype-based object-oriented programming paradigm. In object-oriented development, it's good practice to split class definitions into separate files. Some languages (such as Java) enforce this split, up to and including the names of the files and directory structure used in the package (I hate that, as a rich class hierarchy is a hornet's nest of directories).
 
 Some of the reasons to encourage splitting code into separate files are to:
