@@ -110,8 +110,8 @@ var fetchIf = function (url, path, force) {
     if (force && fileExists (path)) {
         _fs.unlinkSync(path);
     }
-    if (! fileExists (path)) {  
-        _getSync (url, path); 
+    if (! fileExists (path)) {
+        _getSync (url, path);
     }
 }
 
@@ -233,8 +233,8 @@ var Namespace = function () {
             }
             case ".tgz": {
                 fetchIf (url, path, force);
-                if (force && fileExists (package)) { 
-                    removeDirectory (package); 
+                if (force && fileExists (package)) {
+                    removeDirectory (package);
                 }
                 if (! fileExists (package)) {
                     var cwd = process.cwd ();
@@ -281,11 +281,6 @@ var Namespace = function () {
         // try to import the url
         return this.importUrl (url, force);
     };
-    
-    // publish - hoist a package to the archive
-    $.publish = function () {
-        // take a target - directory or js file, tar and gzip it, push it to the host
-    };
 
     // clearCache - empty out the cached imports
     $.clearCache = function () {
@@ -293,6 +288,11 @@ var Namespace = function () {
         removeDirectory (this.cacheFolderName);
         ensureDirectory (this.cacheFolderName);
         return this;
+    };
+
+    // publish - hoist a package to the archive
+    $.publish = function () {
+        // take a target - directory or js file, tar and gzip it, push it to the host
     };
 
     // new - a helper function. you probably don't need this.
