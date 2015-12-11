@@ -45,7 +45,7 @@ So `require ("xxx")` works, but to put a fine point on it, the paradigm as imple
         
     Now you have a global variable called "path". Brilliant. I work around this by using a prefixed underscore (_) naming convention on imports, but you can choose any name you like:
     
-        var path = require ("_path"):
+        var _path = require ("path"):
 
 - I shouldn't have to know about what is inside the module in order to bring its parts into my namespace. This thing:
 
