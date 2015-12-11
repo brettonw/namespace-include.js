@@ -15,103 +15,109 @@ var _vm = require ("vm");
 var _path = require ("path");
 var _url = require ("url");
 var _http = require ("http");
+var _getSync = require ("get-sync");
 var _cp = require ("child_process");
+
+// parsePath - internal function to return the leaf directory of <path>
+var parsePath = function (path) {
+    return (_fs.statSync (path).isDirectory ()) ? path : _path.parse (path).dir;
+};
+
+// searchPath - internal function to search for <target> within <path>, using breadth
+//      first recursion, in file sorted order so the first one found wins
+var searchPath = function (path, target) {
+    var found = null;
+
+    // search through the file list and queue up directories for later
+    var directories = [];
+    _fs.readdirSync (path).sort ().some (function (leaf) {
+        var leafPath = _path.join (path, leaf);
+        if ((leaf != ".") && (leaf != "..")) {
+            if (leaf.toLowerCase () == target) {
+                found = leafPath;
+            } else if (_fs.statSync (leafPath).isDirectory ()) {
+                directories.push (leafPath);
+            }
+        }
+        return (found);
+    });
+
+    // if we didn't find it, search through the directories
+    if (! found) {
+        found = searchPaths (directories, target);
+    }
+
+    // return what we got
+    return found;
+};
+
+// searchPaths - internal function to search all the <paths> for <target>
+var searchPaths = function (paths, target) {
+    var found = null;
+
+    // walk over all of the paths
+    paths.some (function (path) {
+        found = searchPath (path, target);
+        return (found != null);
+    });
+
+    return found;
+};
+
+// fileExists - internal helper function because the Node.js "fs" package has
+// deprecated the "exists" method, and the "approved" async way of getting stat throws
+// an exception if the file doesn't exist (who is responsible for the API design here?
+// amateur much?)
+var fileExists = function (path) {
+    try {
+        var stats = _fs.statSync (path);
+        return true;
+    }
+    catch (exc) {
+    }
+    return false;
+};
+
+// ensureDirectory - internal helper function because I always have to do the same operation
+var ensureDirectory = function (path) {
+    if (! fileExists (path)) { _fs.mkdirSync(path); }
+}
+
+// removeDirectory - internal helper to recursively remove a folder
+var removeDirectory = function (path) {
+    var list = _fs.readdirSync (path);
+    for (var i = 0, end = list.length; i < end; i++) {
+        var leaf = list[i];
+        if ((leaf != ".") && (leaf != "..")) {
+        var leafPath = _path.join (path, leaf);
+            if (_fs.statSync(leafPath).isDirectory()) {
+                removeDirectory(leafPath);
+            } else {
+                _fs.unlinkSync(leafPath);
+            }
+        }
+    }
+    _fs.rmdirSync(path);
+};
+
+// fetchIf - an internal helper function to synchronously fetch a file from <url> and
+// save it to <path>, if it's not already there (or <force> is true)
+var fetchIf = function (url, path, force) {
+    // if it's not already cached, try to fetch it - I launch this as a child process
+    // (sync) to ensure sequential operation without forcing the end user to respond
+    // to my callback, and without adding ridiculous dependencies. Ah, the joys of
+    // API design.
+    if (force && fileExists (path)) {
+        _fs.unlinkSync(path);
+    }
+    if (! fileExists (path)) {  
+        _getSync (url, path); 
+    }
+}
 
 // define the Namespace object
 var Namespace = function () {
     var $ = Object.create (null);
-
-    // parsePath - internal function to return the leaf directory of <path>
-    var parsePath = function (path) {
-        return (_fs.statSync (path).isDirectory ()) ? path : _path.parse (path).dir;
-    };
-
-    // searchPath - internal function to search for <target> within <path>, using breadth
-    //      first recursion, in file sorted order so the first one found wins
-    var searchPath = function (path, target) {
-        var found = null;
-
-        // search through the file list and queue up directories for later
-        var directories = [];
-        _fs.readdirSync (path).sort ().some (function (leaf) {
-            var leafPath = _path.join (path, leaf);
-            if ((leaf != ".") && (leaf != "..")) {
-                if (leaf.toLowerCase () == target) {
-                    found = leafPath;
-                } else if (_fs.statSync (leafPath).isDirectory ()) {
-                    directories.push (leafPath);
-                }
-            }
-            return (found);
-        });
-
-        // if we didn't find it, search through the directories
-        if (! found) {
-            found = searchPaths (directories, target);
-        }
-
-        // return what we got
-        return found;
-    };
-
-    // searchPaths - internal function to search all the <paths> for <target>
-    var searchPaths = function (paths, target) {
-        var found = null;
-
-        // walk over all of the paths
-        paths.some (function (path) {
-            found = searchPath (path, target);
-            return (found != null);
-        });
-
-        return found;
-    };
-
-    // fileExists - internal helper function because the Node.js "fs" package has
-    // deprecated the "exists" method, and the "approved" async way of getting stat throws
-    // an exception if the file doesn't exist (who is responsible for the API design here?
-    // amateur much?)
-    var fileExists = function (path) {
-        try {
-            var stats = _fs.statSync (path);
-            return true;
-        }
-        catch (exc) {
-        }
-        return false;
-    };
-
-    // ensureDirectory - internal helper function because I always have to do the same operation
-    var ensureDirectory = function (path) {
-        if (! fileExists (path)) { _fs.mkdirSync(path); }
-    }
-
-    // removeDirectory - internal helper to recursively remove a folder
-    var removeDirectory = function (path) {
-        var list = _fs.readdirSync (path);
-        for (var i = 0, end = list.length; i < end; i++) {
-            var leaf = list[i];
-            if ((leaf != ".") && (leaf != "..")) {
-            var leafPath = _path.join (path, leaf);
-                if (_fs.statSync(leafPath).isDirectory()) {
-                    removeDirectory(leafPath);
-                } else {
-                    _fs.unlinkSync(leafPath);
-                }
-            }
-        }
-        _fs.rmdirSync(path);
-    };
-
-    // fetchIf - an internal helper function to synchronously fetch a file from <url> and
-    // save it to <path>, if it's not already there
-    var fetchIf = function (url, path) {
-        // if it's not already cached, try to fetch it - I launch this as a child process
-        // (sync) to ensure sequential operation without forcing the end user to respond
-        // to my callback, and without adding ridiculous dependencies. Ah, the joys of
-        // API design.
-        if (! fileExists (path)) {  _cp.spawnSync("node", ["./fetch.js", url, path]); }
-    }
 
     // setVerbose - turn debugging output (to stderr) on or off
     $.setVerbose = function (verbose) {
@@ -202,8 +208,11 @@ var Namespace = function () {
     };
 
     // importUrl - download a package from <url> and unpack it into the namespace-cache
-    $.importUrl = function (url) {
-        if (this.verbose) { process.stderr.write ("importUrl: " + url + "\n"); }
+    //      downloads are skipped if the package is already present in the cache, unless
+    //      the optional parameter <force> is true
+    $.importUrl = function (url, force) {
+        if (force === undefined) { force = false; }
+        if (this.verbose) { process.stderr.write ("importUrl: " + url + ", force: " + (force ? "true" : "false") + "\n"); }
 
         // take apart the url to get the target name, and the end package name. regardless
         // of whether the import target is a raw file or a compressed package, we import
@@ -219,15 +228,19 @@ var Namespace = function () {
             case ".js": {
                 ensureDirectory (package);
                 path = _path.join (package, name);
-                fetchIf (url, path);
+                fetchIf (url, path, force);
                 break;
             }
             case ".tgz": {
-                fetchIf (url, path);
+                fetchIf (url, path, force);
+                if (force && fileExists (package)) { 
+                    removeDirectory (package); 
+                }
                 if (! fileExists (package)) {
                     var cwd = process.cwd ();
                     process.chdir(this.cacheFolderName);
-                    _cp.spawnSync("tar", ["xzvf", path]);
+                    var options = this.verbose ? { stdio: ["ignore", 1, 2] } : {};
+                    _cp.spawnSync("tar", ["xvf", path], options);
                     process.chdir(cwd);
                 }
                 break;
@@ -252,9 +265,11 @@ var Namespace = function () {
     }
 
     // import - this is a convenience method to make import calls look cleaner. it will
-    //      download <name> from the host and unpack it as a normal URL import. packages
-    //      from the host must be .tgz files
-    $.import = function (name) {
+    //      download <name> from the host and unpack it as a normal URL import. download
+    //      will be skipped if the package is already present, unless <force> is true.
+    //      packages from the host must be .tgz files
+    $.import = function (name, force) {
+        if (force === undefined) { force = false; }
         if (this.verbose) { process.stderr.write ("import: " + name + "\n"); }
 
         // use the name to make the url and target path
@@ -264,9 +279,9 @@ var Namespace = function () {
         var url = this.host + name + ".tgz";
 
         // try to import the url
-        return this.importUrl (url);
+        return this.importUrl (url, force);
     };
-
+    
     // publish - hoist a package to the archive
     $.publish = function () {
         // take a target - directory or js file, tar and gzip it, push it to the host

@@ -2,11 +2,11 @@
 
 require("..")
     .setVerbose (true)
-    .clearCache ()
+    //.clearCache ()
     .include ("output")
     .include ("t1")
     .include ("t2")
-    .importUrl ("http://namespace-include.azurewebsites.net/package/abc.js")
+    .importUrl ("http://namespace-include.azurewebsites.net/package/abc.js", true)
     .import ("t3");
 
 var main = function () {
