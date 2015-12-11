@@ -16,14 +16,14 @@ Some of the reasons to encourage splitting code into separate files are to:
 ## Node.js uses "modules"
 To facilitate loading of separate class definition files, Node.js copied the syntax of the perl module loading mechanism (but not the behavior). To bring extra code in, you say something like:
 
-  var myModule = require ("importedModuleName.js");
+    var myModule = require ("importedModuleName.js");
 
 In the module, you say something like:
 
-  var exportThis = function () {
-    ...
-  }
-  module.exports = exportThis;
+    var exportThis = function () {
+        ...
+    }
+    module.exports = exportThis;
 
 The mechanism runs your imported module in a separate VM context and returns `module.exports`. The exported object is available through the variable you assigned it to (in this case, `myModule`). Depending on the usage, the net effect is usually similar to a singleton with static methods on it (think of it like `Math`, where you say something like `var y = Math.sin(x);`).
 
@@ -37,7 +37,7 @@ So `require ("xxx")` works, but to put a fine point on it, the paradigm as imple
 - When I include a module, I shouldn't have to define additional variables in my namespace to access them. Most times, these names pollute my namespace anyway. How often do you see something like `var path = require ("path"):` in sample code? Now you have a global variable called "path". Brilliant. I work around this by using a prefixed underscore (_) naming convention on imports, but you can choose any name you like.
 - I shouldn't have to know about what is inside the module in order to bring it's parts into my namespace (e.g. `var myExtra = require ("modulename").extraThing;`),
 - I should be able to make my own decisions about how I use the global namespace in my program. Given the flexibility to define values in the global scope, I could just as easily decide to build objects to manage the namespaces myself, or export as many objects as I want.
-- Requiring each module to operate in isolation and allowing export of a single object makes building rich class hierarchies difficult. Now I have to keep track of what classes depend on what other classes in my hierarchy and build each one of them with its own set of `require ("xxx")` statements. You might argue this is a good thing, and I'm all for managing dependencies intelligently, but in truth this is extra code that is simply unnecessary (and an extra set of opportunities for error).
+- Requiring each module to operate in isolation and allowing export of a single object makes building rich class hierarchies difficult. Now I have to keep track of what classes depend on what other classes in my hierarchy and build each one of them with its own set of `require ("xxx")` statements. You might argue this is a good thing, and I'm all for managing dependencies intelligently, but in truth this is extra code that is simply unnecessary (and an extra set of opportunities for error), and now I also have to worry about circular dependencies. This is Javascript, not C++!
 - The code I write for a module is not portable, it's specific to Node.js. I shouldn't have to use this stilted coding style that introduces the `module` variable into my global context. This kind of defeats the entire point of being able leverage Javascript development skills across the front and back-end. Now I have to do extra work if I want to re-use that code somewhere else.
 
 ## The solution
