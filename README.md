@@ -57,19 +57,73 @@ So `require ("xxx")` works, but to put a fine point on it, the paradigm as imple
 
 - The code I write for a module is not portable, it's specific to Node.js. I shouldn't have to use this stilted coding style that introduces the `module` variable into my global context. This kind of defeats the entire point of being able leverage Javascript development skills across the front and back-end. Now I have to do extra work if I want to re-use that code somewhere else.
 
+- That [rich module ecosystem](npmjs.com) is a ridiculously polluted namespace itself. I really wanted to call this module "include", or "include.js". Truth be told, I looked for something that provided this type of functionality before I wrote it, but what I found was too complex or was riddled with other dependencies (including some requiring compilation).
+
 - `npm` is a standalone tool, so if I forget to run `npm install myPackage` then my program fails. 
 
-- `npm` is not universal, so if you want to use that rich module ecosystem, but you're on an unsupported platform, then you have to do extra work. In order to use `npm` to publish this module, I am currently using a workflow that bounces between my cygwin environment and a Mac or Linux VM, through GitHub. If you are trying to follow my changelogs, I'm sorry.
+- `npm` is not universal, so if you want to use that [rich module ecosystem](npmjs.com), but you're on an unsupported platform, then you have to do extra work. In order to use `npm` to publish this module, I am currently using a workflow that bounces between my cygwin environment and a Mac or Linux VM, through GitHub. If you are trying to follow my changelogs, I'm sorry.
 
 - While I'm at it, who at npm decided cygwin is evil? I've been using this toolset for more than 20 years to give me unix-like shell (and portable shell scripts) on Windows systems, and I resent that npm and its legacy eschew it in favor of... I can't think what it's in favor of. It's just... 
 
 ## The solution
 The solution is to expose a simple mechanism for including another Javascript file into the global context. Now you can do all the engineering you want, with re-usable code, and it's *just* Javascript. For this, two basic methods are provided:
 
-includeFile (name)
-includePackage (path)
+### includeFile 
 
+    require("namespace-include")
+        .includeFile (name);
 
-Actually, this module does quite a bit more, allowing you to specify search paths, implement a form of package, and even import files and packages from the web dynamically.  
+The method `includeFile` will directly include the javascript file specified in `<name>` into your global context. It doesn't do any kind of search, or validation that the requested file actually exists.
+
+It _returns_ the `Namespace` object, so you can chain calls:
+
+    require("namespace-include")
+        .includeFile ("abc.js")
+        .includeFile ("xyz.js");
+
+### includePackage
+
+    require("namespace-include")
+        .includePackage (path);
+
+The method `includePackage` will run `includeFile` on the javascript files found in the directory `<path>` (relative to the CWD). It doesn't do any kind of search, but does validate the presence of the path.
+
+It _returns_ the `Namespace` object, so you can chain calls:
+
+    require("namespace-include")
+        .includePackage ("packages/abc")
+        .includeFile ("xyz.js");
+
+## But wait, there's more!
+Actually, this module does quite a bit more than *just* include files or packages. It allows you to specify search paths, define packages as more than just a directory, and even import files and packages from the web dynamically.  
+
+## Searching
+### include
+
+    require("namespace-include")
+        .include(name);
+
+The method `include` is a helper function for `includeFile` and `includePackage`. It provides search capability in search paths (that you specify through `setPath` or `addPath` - the default is the main program starting directory), automatically determines whether `<name>` is a file or a package, so you can leave off the ".js" on your file names (because it just looks cleaner to me).
+
+It _returns_ the `Namespace` object, so you can chain calls:
+
+    require("namespace-include")
+        .include ("abc")
+        .include ("def")
+        .includeFile ("xyz.js");
+
+### setPath
+
+### addPath
+
+## All about "packages"
+
+## Importing from a URL
+
+### importUrl
+### import
+### setHost
+### clearCache
+### publish
 
 (docs in progress)
