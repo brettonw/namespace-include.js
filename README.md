@@ -103,7 +103,7 @@ Actually, this module does quite a bit more than *just* include files or package
     require ("namespace-include")
         .include(<name>);
 
-The method `include` is a helper function for `includeFile` and `includePackage`. It provides search capability in search paths (that you specify through `setPath` or `addPath` - the default is the main program starting directory), automatically determines whether `<name>` is a file or a package, so you can leave off the ".js" on your file names (because it just looks cleaner to me).
+The method `include` is a helper function for `includeFile` and `includePackage`. It provides search capability in search paths (that you specify through `setPath` or `addPath` - the default is the main program starting directory), and automatically determines whether `<name>` is a file or a package (so you can leave off the ".js" on your file names, because it just looks cleaner to me).
 
 It _returns_ the `Namespace` object, so you can chain calls:
 
