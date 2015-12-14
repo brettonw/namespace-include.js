@@ -49,7 +49,6 @@ var searchPath = function (path, target) {
 // searchPaths - internal function to search all the <paths> for <target>
 var searchPaths = function (paths, target) {
     var found = null;
-process.stderr.write ("searchPaths (Paths[0] = " + paths[0] + ")\n");
 
     // walk over all of the paths
     paths.some (function (path) {
