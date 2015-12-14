@@ -303,11 +303,6 @@ var Namespace = function () {
             .setHost ("http://namespace-include.azurewebsites.net/package/");
     };
 
-    $.bootstrap = function () {
-        var path = _path.join (__dirname, "bootstrap.js");
-        return this.includeFile (path);
-    }
-
     return $;
 } ();
 
