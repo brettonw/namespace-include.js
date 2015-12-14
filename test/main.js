@@ -3,7 +3,7 @@
 // exercise the include code
 require("..").bootstrap ();
 _namespace.setVerbose (true);
-//.clearCache ();
+//_namespace..clearCache ();
 _include ("output");
 _include ("t1");
 _include ("t2");

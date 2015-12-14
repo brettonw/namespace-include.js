@@ -38,7 +38,7 @@ var searchPath = function (path, target) {
     });
 
     // if we didn't find it, search through the directories
-    if (! found) {
+    if ((! found) && (directories.length > 0)) {
         found = searchPaths (directories, target);
     }
 
@@ -180,7 +180,7 @@ var Namespace = function () {
     $.include = function (name) {
         if (this.verbose) { process.stderr.write ("include: " + name + "\n"); }
 
-        // first, find the target using <name> as give. if that fails (and <name> wasn't
+        // first, find the target using <name> as given. if that fails (and <name> wasn't
         // already a .js file), try looking for <name>.js
         name = name.toLowerCase ();
         var found = searchPaths (this.paths, name);
