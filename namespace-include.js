@@ -18,10 +18,7 @@ var _http = require ("http");
 var _getSync = require ("get-sync");
 var _cp = require ("child_process");
 
-// parsePath - internal function to return the leaf directory of <path>
-var parsePath = function (path) {
-    return (_fs.statSync (path).isDirectory ()) ? path : _path.parse (path).dir;
-};
+// INTERNAL FUNCTIONS
 
 // searchPath - internal function to search for <target> within <path>, using breadth
 //      first recursion, in file sorted order so the first one found wins
@@ -52,6 +49,7 @@ var searchPath = function (path, target) {
 // searchPaths - internal function to search all the <paths> for <target>
 var searchPaths = function (paths, target) {
     var found = null;
+process.stderr.write ("searchPaths (Paths[0] = " + paths[0] + ")\n");
 
     // walk over all of the paths
     paths.some (function (path) {
@@ -109,6 +107,8 @@ var fetchIf = function (url, path, force) {
     }
 }
 
+// NAMESPACE
+
 // define the Namespace object
 var Namespace = function () {
     var $ = Object.create (null);
@@ -124,14 +124,14 @@ var Namespace = function () {
     // setPath - reset the list of search paths to just <path>
     $.setPath = function (path) {
         if (this.verbose) { process.stderr.write ("setPath: " + path + "\n"); }
-        this.paths = [ parsePath (path) ];
+        this.paths = [ path ];
         return this;
     };
 
     // addPath - append <path> to the list of search paths
     $.addPath = function (path) {
         if (this.verbose) { process.stderr.write ("addPath: " + path + "\n"); }
-        this.paths.push (parsePath (path));
+        this.paths.push (path);
         return this;
     };
 
@@ -294,14 +294,20 @@ var Namespace = function () {
 
     // new - a helper function. you probably don't need this.
     $.new = function () {
-        // check for the cache folder
-        this.cacheFolderName = _path.join (parsePath (require.main.filename), "namespace-cache");
+        // create the cache folder name
+        this.cacheFolderName = _path.join (_path.parse (require.main.filename).dir, "namespace-cache");
 
+        // create the namespace and set the defaults
         return Object.create (Namespace)
             .setVerbose (false)
-            .setPath (require.main.filename)
+            .setPath (_path.parse (require.main.filename).dir)
             .setHost ("http://namespace-include.azurewebsites.net/package/");
     };
+
+    $.bootstrap = function () {
+        var path = _path.join (__dirname, "bootstrap.js");
+        return this.includeFile (path);
+    }
 
     return $;
 } ();
