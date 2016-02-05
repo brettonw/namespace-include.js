@@ -26,7 +26,7 @@ In the module, you say something like:
     }
     module.exports = exportThis;
 
-The mechanism runs your imported module in a separate VM context and returns `module.exports`. The exported object is available through the variable you assigned it to (in this case, `myModule`). Depending on the usage, the net effect is usually similar to a singleton with static methods on it (think of it like `Math`, where you say something like:
+The mechanism runs your imported module in a separate VM context and returns `module.exports`. The exported object is available through the variable you assigned it to (in this case, `myModule`). Depending on the usage, the net effect is usually similar to a singleton with static methods on it. Think of it like `Math`, where you say something like:
 
     var y = Math.sin(x);
 
