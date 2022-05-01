@@ -39,6 +39,8 @@ So `require ("xxx")` works, but to put a fine point on it, the paradigm as imple
 
 - Javascript users are not typically that concerned with the dogmatic procedures of software development in teams, so building a mechanism that treats scripters as engineers in a defensive programming environment stands out as awkward. This shining example of industry best practice is just a hurdle to normal usage.
 
+- In the years since I first wrote this module full-scale applications have emerged with additional layers of complexity like build systems and automated testing. This would seem to run counter to my first point, but the issue is that Javascript already had all the ability needed to build abstraction (objects *are* classes *and* namespaces), it didn't need a forced format that differed from that. All it actually needed is a simple "include" statement. Note: I have a very similar criticism of Python's import mechanisms. 
+
 - When I include a module, I shouldn't have to define additional variables in my namespace to access them. Most times, these names pollute my namespace anyway. How often do you look at sample code and see something like:
 
         var path = require ("path"):
@@ -55,7 +57,7 @@ So `require ("xxx")` works, but to put a fine point on it, the paradigm as imple
 
 - Requiring each module to operate in isolation and allowing export of a single object makes building rich class hierarchies difficult. Now I have to keep track of what classes depend on what other classes in my hierarchy and build each one of them with its own set of `require ("xxx")` statements. You might argue this is a good thing, and I'm all for managing dependencies intelligently, but in truth this is extra code that is simply unnecessary (and an extra set of opportunities for error), and now I also have to worry about circular dependencies. This is Javascript, not C++!
 
-- The code I write for a module is not portable, it's specific to Node.js. I shouldn't have to use this stilted coding style that introduces the `module` variable into my global context. This kind of defeats the entire point of being able leverage Javascript development skills across the front and back-end. Now I have to do extra work if I want to re-use that code somewhere else.
+- The code I write for a module is not portable (enough), it's specific to Node.js or to my browser without additional build system support. I shouldn't have to use this stilted coding style that introduces the `module` variable into my global context. This kind of defeats the entire point of being able leverage Javascript development skills across the front and back-end. Now I have to do extra work if I want to re-use that code somewhere else. Browsers have added support for modules over the years, though I have not found this to present a seamless transition between Node and Browser platforms. 
 
 - That [rich module ecosystem](npmjs.com) is a ridiculously polluted namespace itself. I really wanted to call this module "include", or "include.js". Truth be told, I looked for something that provided this type of functionality before I wrote it, but what I found was too complex or was riddled with other dependencies (including some requiring compilation).
 

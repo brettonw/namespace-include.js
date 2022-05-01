@@ -33,3 +33,4 @@ namespace-cache
 
 # stupid MacOS
 .DS_Store
+.idea
