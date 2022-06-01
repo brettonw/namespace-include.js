@@ -1,7 +1,7 @@
 stdout.writeln ("bbb");
 
-var spew = function (obj) {
-    for (var key in obj) {
+let spew = function (obj) {
+    for (let key in obj) {
         stdout.writeln (key);
     }
 }

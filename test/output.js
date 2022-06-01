@@ -1,6 +1,6 @@
 // a simple output class definition and two global instances to demonstrate "include.js"
-var Output = function () {
-    var $ = Object.create (null);
+let Output = function () {
+    let $ = Object.create (null);
 
     $.write = function (output) {
         this.channel.write (output);
@@ -30,5 +30,5 @@ var Output = function () {
     return $;
 } ();
 
-var stdout = Output.new ("stdout");
-var stderr = Output.new ("stderr");
+let stdout = Output.new ("stdout");
+let stderr = Output.new ("stderr");

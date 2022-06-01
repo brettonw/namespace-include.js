@@ -10,26 +10,26 @@
 
 // all of my dependencies, these SHOULD all be built-ins. note that I use the _xxx naming
 // convention to avoid polluting my script namespace with these basic words.
-var _fs = require ("fs");
-var _vm = require ("vm");
-var _path = require ("path");
-var _url = require ("url");
-var _http = require ("http");
-var _getSync = require ("get-sync");
-var _cp = require ("child_process");
+let _fs = require ("fs");
+let _vm = require ("vm");
+let _path = require ("path");
+let _url = require ("url");
+let _http = require ("http");
+let _getSync = require ("get-sync");
+let _cp = require ("child_process");
 
 // INTERNAL FUNCTIONS
 
 // searchPath - internal function to search for <target> within <path>, using breadth
 //      first recursion, in file sorted order so the first one found wins
-var searchPath = function (path, target) {
-    var found = null;
+let searchPath = function (path, target) {
+    let found = null;
 
     // search through the file list and queue up directories for later
-    var directories = [];
+    let directories = [];
     _fs.readdirSync (path).sort ().some (function (leaf) {
-        var leafPath = _path.join (path, leaf);
-        if (leaf.toLowerCase () == target) {
+        let leafPath = _path.join (path, leaf);
+        if (leaf.toLowerCase () === target) {
             found = leafPath;
         } else if (_fs.statSync (leafPath).isDirectory ()) {
             directories.push (leafPath);
@@ -47,10 +47,10 @@ var searchPath = function (path, target) {
 };
 
 // searchPaths - internal function to search all the <paths> for <target>
-var searchPaths = function (paths, target) {
-    var found = null;
+let searchPaths = function (paths, target) {
+    let found = null;
 
-    // walk over all of the paths
+    // walk over all the paths
     paths.some (function (path) {
         found = searchPath (path, target);
         return (found != null);
@@ -63,9 +63,9 @@ var searchPaths = function (paths, target) {
 // deprecated the "exists" method, and the "approved" async way of getting stat throws
 // an exception if the file doesn't exist (who is responsible for the API design here?
 // amateur much?)
-var fileExists = function (path) {
+let fileExists = function (path) {
     try {
-        var stats = _fs.statSync (path);
+        _fs.statSync (path);
         return true;
     }
     catch (exc) {
@@ -74,14 +74,14 @@ var fileExists = function (path) {
 };
 
 // ensureDirectory - internal helper function because I always have to do the same operation
-var ensureDirectory = function (path) {
+let ensureDirectory = function (path) {
     if (! fileExists (path)) { _fs.mkdirSync(path); }
 }
 
 // removeDirectory - internal helper to recursively remove a folder
-var removeDirectory = function (path) {
+let removeDirectory = function (path) {
     _fs.readdirSync (path).sort ().forEach (function (leaf) {
-        var leafPath = _path.join (path, leaf);
+        let leafPath = _path.join (path, leaf);
         if (_fs.statSync(leafPath).isDirectory()) {
             removeDirectory(leafPath);
         } else {
@@ -93,7 +93,7 @@ var removeDirectory = function (path) {
 
 // fetchIf - an internal helper function to synchronously fetch a file from <url> and
 // save it to <path>, if it's not already there (or <force> is true)
-var fetchIf = function (url, path, force) {
+let fetchIf = function (url, path, force) {
     // if it's not already cached, try to fetch it - I launch this as a child process
     // (sync) to ensure sequential operation without forcing the end user to respond
     // to my callback, and without adding ridiculous dependencies. Ah, the joys of
@@ -109,8 +109,8 @@ var fetchIf = function (url, path, force) {
 // NAMESPACE
 
 // define the Namespace object
-var Namespace = function () {
-    var $ = Object.create (null);
+let Namespace = function () {
+    let $ = Object.create (null);
 
     // setVerbose - turn debugging output (to stderr) on or off
     $.setVerbose = function (verbose) {
@@ -137,7 +137,7 @@ var Namespace = function () {
     // includeFile - directly run the <name> in the global namespace
     $.includeFile = function (name) {
         if (this.verbose) { process.stderr.write ("includeFile: " + name + "\n"); }
-        _vm.runInThisContext(_fs.readFileSync(name));
+        _vm.runInThisContext(_fs.readFileSync(name, {encoding: "utf-8"}));
         return this;
     };
 
@@ -148,21 +148,21 @@ var Namespace = function () {
     $.includePackage = function (path) {
         if (this.verbose) { process.stderr.write ("includePackage: " + path + "\n"); }
         if (fileExists (path)) {
-            var scope = this;
-            var package = _path.join (path, "namespace-package.json");
-            if (fileExists (package)) {
+            let scope = this;
+            let packageFile = _path.join (path, "namespace-package.json");
+            if (fileExists (packageFile)) {
                 try {
-                    package = JSON.parse(_fs.readFileSync(package, "utf8"));
-                    if ((package != null) && (package.hasOwnProperty ("files"))) {
-                        package.files.forEach (function (leaf) {
-                            scope.includeFile (_path.join (path, leaf));
-                        });
+                    let packageObject = JSON.parse(_fs.readFileSync(packageFile, "utf8"));
+                    if ((packageObject != null) && (packageObject.hasOwnProperty ("files"))) {
+                        for (let leaf of packageObject.files) {
+                            this.includeFile (_path.join (path, leaf));
+                        }
                     }
                 } catch (exc) { }
             } else {
                 // the javascript files are treated in sorted order
-                _fs.readdirSync (path).sort ().forEach (function (leaf) {
-                    if (_path.extname (leaf) == ".js") {
+                _fs.readdirSync (path).sort ().forEach (leaf => {
+                    if (_path.extname (leaf) === ".js") {
                         scope.includeFile (_path.join (path, leaf));
                     }
                 });
@@ -182,9 +182,9 @@ var Namespace = function () {
         // first, find the target using <name> as given. if that fails (and <name> wasn't
         // already a .js file), try looking for <name>.js
         name = name.toLowerCase ();
-        var found = searchPaths (this.paths, name);
-        var parse = _path.parse (name);
-        if ((! found) && (parse.ext != ".js")) {
+        let found = searchPaths (this.paths, name);
+        let parse = _path.parse (name);
+        if ((! found) && (parse.ext !== ".js")) {
             found = searchPaths (this.paths, parse.name + ".js");
         }
 
@@ -213,29 +213,29 @@ var Namespace = function () {
         // take apart the url to get the target name, and the end package name. regardless
         // of whether the import target is a raw file or a compressed package, we import
         // it as a package folder
-        var parse = _url.parse (url);
-        var name = parse.pathname.split ("/").pop ();
-        var ext = _path.extname (name).toLowerCase ();
-        var path = _path.join (this.cacheFolderName, name);
-        var package = path.substr (0, path.length - ext.length);
+        let parse = new URL (url);// _url.parse (url);
+        let name = parse.pathname.split ("/").pop ();
+        let ext = _path.extname (name).toLowerCase ();
+        let path = _path.join (this.cacheFolderName, name);
+        let packageFolder = path.substring (0, path.length - ext.length);
 
         // depending on the url target, we have to configure the result differently
         switch (ext) {
             case ".js": {
-                ensureDirectory (package);
-                path = _path.join (package, name);
+                ensureDirectory (packageFolder);
+                path = _path.join (packageFolder, name);
                 fetchIf (url, path, force);
                 break;
             }
             case ".tgz": {
                 fetchIf (url, path, force);
-                if (force && fileExists (package)) {
-                    removeDirectory (package);
+                if (force && fileExists (packageFolder)) {
+                    removeDirectory (packageFolder);
                 }
-                if (! fileExists (package)) {
-                    var cwd = process.cwd ();
+                if (! fileExists (packageFolder)) {
+                    let cwd = process.cwd ();
                     process.chdir(this.cacheFolderName);
-                    var options = this.verbose ? { stdio: ["ignore", 1, 2] } : {};
+                    let options = this.verbose ? { stdio: ["ignore", 1, 2] } : null;
                     _cp.spawnSync("tar", ["xvf", path], options);
                     process.chdir(cwd);
                 }
@@ -248,7 +248,7 @@ var Namespace = function () {
         }
 
         // and finally, if we have everything we need, include it like normal
-        this.includePackage (package);
+        this.includePackage (packageFolder);
         return this;
     };
 
@@ -270,9 +270,9 @@ var Namespace = function () {
 
         // use the name to make the url and target path
         name = name.toLowerCase ();
-        var parse = _path.parse (name);
-        name = (parse.ext == ".tgz") ? name.substr (0, name.length - parse.ext.length) : name;
-        var url = this.host + name + ".tgz";
+        let parse = _path.parse (name);
+        name = (parse.ext === ".tgz") ? name.substring (0, name.length - parse.ext.length) : name;
+        let url = this.host + name + ".tgz";
 
         // try to import the url
         return this.importUrl (url, force);
@@ -300,7 +300,7 @@ var Namespace = function () {
         return Object.create (Namespace)
             .setVerbose (false)
             .setPath (_path.parse (require.main.filename).dir)
-            .setHost ("http://namespace-include.azurewebsites.net/package/");
+            .setHost ("https://namespace-include.azurewebsites.net/package/");
     };
 
     return $;

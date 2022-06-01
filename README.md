@@ -14,46 +14,52 @@ Some of the reasons to encourage splitting code into separate files are to:
 - hoist commonly used functionality into a single point of entry (thereby minimizing opportunities for errors in replication and reducing effort when updating algorithms).
 
 ## Node.js uses "modules"
-To facilitate loading of separate class definition files, Node.js copied the syntax of the perl module loading mechanism (but not the behavior). To bring extra code in, you say something like:
+To facilitate loading of separate class definition files, Node.js drew on the syntax of the perl and python module loading mechanisms. To bring extra code in, you say something like:
 
-    var myModule = require ("importModuleName.js");
-    var myResult = myModule.doSomethingInteresting (withInteresting params);
+    let myModule = require ("importModuleName.js");
+    let myResult = myModule.doSomethingInteresting (withInteresting params);
 
 In the module, you say something like:
 
-    var exportThis = function () {
+    let exportThis = function () {
         ...
     }
     module.exports = exportThis;
 
 The mechanism runs your imported module in a separate VM context and returns `module.exports`. The exported object is available through the variable you assigned it to (in this case, `myModule`). Depending on the usage, the net effect is usually similar to a singleton with static methods on it. Think of it like `Math`, where you say something like:
 
-    var y = Math.sin(x);
+    let y = Math.sin(x);
 
 The primary benefit of this approach is that you avoid polluting the script's global namespace with values from the imported modules.
 
 A very rich ecosystem of modules has been built around the `require` mechanism using a package definition and the `npm` (node package manager), a stand along program that connects to an [online registry at npmjs.com](npmjs.com). Ironically the registry namespace has been flooded with more than 200,000 modules battling over appropriate titles. Every single 2 or 3 letter name you can imagine is taken, and most sensible names have been used for *something*, indicating a need for a better solution.
 
 ## What's the problem?
-So `require ("xxx")` works, but to put a fine point on it, the paradigm as implemented is pedantic overkill in an environment that otherwise just doesn't have that much rigor (or need for it). My criticisms in no particular order are:
+So `require ("xxx")` works, but to put a fine point on it, the paradigm as implemented is pedantic overkill. My criticisms in no particular order are:
 
-- Javascript users are not typically that concerned with the dogmatic procedures of software development in teams, so building a mechanism that treats scripters as engineers in a defensive programming environment stands out as awkward. This shining example of industry best practice is just a hurdle to normal usage.
+- Javascript already supports the desired behavior. It is the exact same thing as writing a function defining an object with an appropriate public interface and then returning that object to the caller.
 
-- In the years since I first wrote this module full-scale applications have emerged with additional layers of complexity like build systems and automated testing. This would seem to run counter to my first point, but the issue is that Javascript already had all the ability needed to build abstraction (objects *are* classes *and* namespaces), it didn't need a forced format that differed from that. All it actually needed is a simple "include" statement. Note: I have a very similar criticism of Python's import mechanisms. 
+- Javascript users are not typically that concerned with the dogmatic procedures of software development, rigid typing, concrete data structures, and working in teams. The power of this language lies in its ability to bring up functionality without all that rigor. As a result, building a mechanism that treats scripters as engineers in a defensive programming environment stands out as awkward. This shining example of industry best practice is just a hurdle to normal usage.
+
+- In the years since I first wrote this module full-scale applications have emerged with additional layers of complexity like build systems and automated testing. This would seem to run counter to my second point, but the issue is that objects *are* classes *and* namespaces, the language didn't need a forced format that differed from that. All it actually needed is a simple "include" statement. Note: I have a very similar criticism of Python's import mechanisms. 
 
 - When I include a module, I shouldn't have to define additional variables in my namespace to access them. Most times, these names pollute my namespace anyway. How often do you look at sample code and see something like:
 
-        var path = require ("path"):
+        let path = require ("path"):
 
     Now you have a global variable called "path". Brilliant. I work around this by using a prefixed underscore (_) naming convention on imports, but you can choose any name you like:
 
-        var _path = require ("path"):
+        let _path = require ("path"):
 
 - I shouldn't have to know about what is inside the module in order to bring its parts into my namespace. This thing:
 
-        var myExtra = require ("modulename").extraThing;
+        let myExtra = require ("modulename").extraThing;
 
-- I should be able to make my own decisions about how I use the global namespace in my program. Given the flexibility to define values in the global scope, I could just as easily decide to build objects to manage the namespaces myself, or export as many objects as I want.
+- I should be able to make my own decisions about how I use the global namespace in my program. Given the flexibility to define values in the global scope, I could just as easily decide to build objects to manage the namespaces myself, or export as many objects as I want. The counter-argument is that I can still do that with something like:
+
+        let globalObj = ThatModule.thingThatShouldBeGlobal;
+
+  ...so the designer has to modularize code that they wanted to be global in the first place, and then hoist it to the global namespace. This approach requires extra code, which is not the right way to encourage good design.
 
 - Requiring each module to operate in isolation and allowing export of a single object makes building rich class hierarchies difficult. Now I have to keep track of what classes depend on what other classes in my hierarchy and build each one of them with its own set of `require ("xxx")` statements. You might argue this is a good thing, and I'm all for managing dependencies intelligently, but in truth this is extra code that is simply unnecessary (and an extra set of opportunities for error), and now I also have to worry about circular dependencies. This is Javascript, not C++!
 
@@ -65,7 +71,7 @@ So `require ("xxx")` works, but to put a fine point on it, the paradigm as imple
 
 - `npm` is not universal, so if you want to use that [rich module ecosystem](npmjs.com), but you're on an unsupported platform, then you have to do extra work. In order to use `npm` to publish this module, I am currently using a workflow that bounces between my cygwin environment and a Mac or Linux VM, through GitHub. If you are trying to follow my changelogs, I'm sorry.
 
-- While I'm at it, who at npm decided cygwin is evil? I've been using this toolset for more than 20 years to give me unix-like shell (and portable shell scripts) on Windows systems, and I resent that npm and its legacy eschew it in favor of... I can't think what it's in favor of. It's just...
+- While I'm at it, who at npm decided cygwin is evil? I've been using this toolset for more than 25 years to give me unix-like shell (and portable shell scripts) on Windows systems, and I resent that npm and its legacy eschew it in favor of... I can't think what it's in favor of. It's just...
 
 ## The solution
 The solution is to expose a simple mechanism for including another Javascript file into the global context. Now you can do all the engineering you want, with re-usable code, and it's *just* Javascript. For this, two basic methods are provided:
@@ -215,3 +221,5 @@ The method `clearCache` removes all packages cached by the import process.
 The method `publish` is still in the design phase, pending a back-end support architecture. We anticipate this will be an important component of a standalone module tool.
 
 (docs in progress)
+
+## Building
