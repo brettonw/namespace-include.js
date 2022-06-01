@@ -300,7 +300,7 @@ let Namespace = function () {
         return Object.create (Namespace)
             .setVerbose (false)
             .setPath (_path.parse (require.main.filename).dir)
-            .setHost ("https://namespace-include.azurewebsites.net/package/");
+            .setHost ("http://namespace-include.azurewebsites.net/package/");
     };
 
     return $;

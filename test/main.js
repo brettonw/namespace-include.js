@@ -7,7 +7,7 @@ require("..")
     .include ("output")
     .include ("t1")
     .include ("t2")
-    .importUrl ("https://namespace-include.azurewebsites.net/package/abc.js", true)
+    .importUrl ("http://namespace-include.azurewebsites.net/package/abc.js", true)
     .import ("t3");
 
 // test out a few things, like whether or not names defined in the included files correctly
